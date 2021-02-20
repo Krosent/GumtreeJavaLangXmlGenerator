@@ -13,7 +13,7 @@ positions = [0]
 
 
 def main(file):
-    # This code is used to configure parsing tool Tree Sitter.
+    # This code is used to configure parsing tool Tree Sitter
     Language.build_library(
         # Store the library in the `build` directory
         'build/my-languages.so',
@@ -32,8 +32,25 @@ def main(file):
     parser.set_language(java_lang)
     tree_sitter_tree = parser.parse(read_file(file))
     gumtree_ast = to_gumtree_node(tree_sitter_tree.root_node)
-    doc.appendChild(gumtree_ast)
+
+    # everything should be inside the tag
+    root_node = doc.createElement('root')
+
+    # in test case they have context tag, which is empty. Do not know why we need it
+    context_node = doc.createElement('context')
+
+    # We append our root node to document
+    doc.appendChild(root_node)
+
+    # Append context tag to root node (<root> </root)
+    root_node.appendChild(context_node)
+
+    # append data into <root> tag. At this stage we append parsed code structure.
+    root_node.appendChild(gumtree_ast)
+
+    # Recursively add children nodes (if exist)
     process_node(tree_sitter_tree.root_node, gumtree_ast)
+
     xml = doc.toprettyxml()
     print(xml)
 
@@ -62,9 +79,9 @@ def process_node(tree_sitter_node, gumtree_node):
     for tree_sitter_child in tree_sitter_node.children:
         gumtree_child = to_gumtree_node(tree_sitter_child)
 
-        if gumtree_child != None:
+        if gumtree_child is not None:
             gumtree_node.appendChild(gumtree_child)
-            if tree_sitter_child.children != None:
+            if tree_sitter_child.children is not None:
                 process_node(tree_sitter_child, gumtree_child)
 
 
@@ -72,9 +89,9 @@ def read_file(file):
     with open(file, 'r') as file:
         data = file.read()
     index = 0
-    for chr in data:
+    for CHR in data:
         index += 1
-        if chr == '\n':
+        if CHR == '\n':
             positions.append(index)
     return bytes(data, encoding='utf8')
 
