@@ -12,7 +12,23 @@ doc = minidom.Document()
 positions = [0]
 
 
-def main(file):
+dummy_code = bytes("""
+public class AddTwoIntegers {
+    public static void main(String[] args) {
+        
+        int first = 10;
+        int second = 20;
+
+        System.out.println("Enter two numbers: " + first + " " + second);
+        int sum = first + second;
+
+        System.out.println("The sum is: " + sum);
+    }
+}
+""", encoding='utf8')
+
+def main():
+# def main(file):
     # This code is used to configure parsing tool Tree Sitter
     Language.build_library(
         # Store the library in the `build` directory
@@ -30,7 +46,12 @@ def main(file):
     # Parsing algorithm starts here
     parser = Parser()
     parser.set_language(java_lang)
-    tree_sitter_tree = parser.parse(read_file(file))
+
+    # For debugging
+    tree_sitter_tree = parser.parse(dummy_code)
+
+    # For production
+    # tree_sitter_tree = parser.parse(read_file(file))
     gumtree_ast = to_gumtree_node(tree_sitter_tree.root_node)
 
     # everything should be inside the tag
@@ -62,9 +83,9 @@ def to_gumtree_node(tree_sitter_node):
     gumtree_node = doc.createElement('tree')
     gumtree_node.setAttribute("type", tree_sitter_node.type)
 
-    start_pos = (tree_sitter_node.start_point[0] - 1) + tree_sitter_node.start_point[1]
-    end_pos = (tree_sitter_node.end_point[0] - 1) + tree_sitter_node.end_point[1]
-    length = end_pos - start_pos
+    # Calculation is done in bytes since we need to get accurate information about length of code structures.
+    start_pos = tree_sitter_node.start_byte - 1
+    length = tree_sitter_node.end_byte - tree_sitter_node.start_byte
 
     gumtree_node.setAttribute("pos", str(start_pos))
     gumtree_node.setAttribute("length", str(length))
@@ -96,6 +117,12 @@ def read_file(file):
     return bytes(data, encoding='utf8')
 
 
+# Production
+# Press the green button in the gutter to run the script.
+#if __name__ == '__main__':
+#    main(sys.argv[1])
+
+# Debugging
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    main(sys.argv[1])
+    main()
