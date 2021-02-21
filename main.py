@@ -7,6 +7,7 @@
 from tree_sitter import Language, Parser
 from xml.dom import minidom
 import sys
+import os
 
 doc = minidom.Document()
 positions = [0]
@@ -27,28 +28,35 @@ public class AddTwoIntegers {
 }
 """, encoding='utf8')
 
-def main():
-# def main(file):
+# Debug only
+# def main():
+
+
+# Production only
+def main(file):
+
+    this_directory = os.path.dirname(__file__)
+    # filename = os.path.join(this_directory, '/relative/path/to/file/you/want')
     # This code is used to configure parsing tool Tree Sitter
     Language.build_library(
         # Store the library in the `build` directory
-        'build/my-languages.so',
+        os.path.join(this_directory, 'build/my-languages.so'),
 
         # Include one or more languages
         [
             # 'vendor/tree-sitter-go',
-            'vendor/tree-sitter-java'
+            os.path.join(this_directory, 'vendor/tree-sitter-java')
             # 'vendor/tree-sitter-python'
         ]
     )
-    java_lang = Language('build/my-languages.so', 'java')
+    java_lang = Language(os.path.join(this_directory, 'build/my-languages.so'), 'java')
 
     # Parsing algorithm starts here
     parser = Parser()
     parser.set_language(java_lang)
 
     # For debugging
-    tree_sitter_tree = parser.parse(dummy_code)
+    tree_sitter_tree = parser.parse(read_file(file))
 
     # For production
     # tree_sitter_tree = parser.parse(read_file(file))
@@ -84,7 +92,7 @@ def to_gumtree_node(tree_sitter_node):
     gumtree_node.setAttribute("type", tree_sitter_node.type)
 
     # Calculation is done in bytes since we need to get accurate information about length of code structures.
-    start_pos = tree_sitter_node.start_byte - 1
+    start_pos = tree_sitter_node.start_byte
     length = tree_sitter_node.end_byte - tree_sitter_node.start_byte
 
     gumtree_node.setAttribute("pos", str(start_pos))
@@ -119,10 +127,10 @@ def read_file(file):
 
 # Production
 # Press the green button in the gutter to run the script.
-#if __name__ == '__main__':
-#    main(sys.argv[1])
+if __name__ == '__main__':
+    main(sys.argv[1])
 
 # Debugging
 # Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#    main()
