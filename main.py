@@ -60,6 +60,7 @@ def main(file):
 
     # For production
     # tree_sitter_tree = parser.parse(read_file(file))
+
     gumtree_ast = to_gumtree_node(tree_sitter_tree.root_node)
 
     # everything should be inside the tag
@@ -89,7 +90,12 @@ def main(file):
 
 def to_gumtree_node(tree_sitter_node):
     gumtree_node = doc.createElement('tree')
-    gumtree_node.setAttribute("type", tree_sitter_node.type)
+
+    if not tree_sitter_node.is_named:
+        gumtree_node.setAttribute("type", tree_sitter_node.parent.type)
+        gumtree_node.setAttribute("label", tree_sitter_node.type)
+    else:
+        gumtree_node.setAttribute("type", tree_sitter_node.type)
 
     # Calculation is done in bytes since we need to get accurate information about length of code structures.
     start_pos = tree_sitter_node.start_byte
